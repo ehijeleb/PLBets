@@ -53,11 +53,18 @@ class MatchPredictor:
         away_games = matches_rolling[(matches_rolling["team"] == away_team) & (matches_rolling["h/a"] == 0)]
         last_5_away_games = away_games.sort_values("date").tail(5)
 
+ 
+
         # Calculate the average goals scored in the last 5 home games for the home team
         avg_goals_home_team = last_5_home_games["gf"].mean()
 
         # Calculate the average goals scored in the last 5 away games for the away team
         avg_goals_away_team = last_5_away_games["gf"].mean()
+
+
+        # Handle NaN values by replacing them with 0 or a placeholder
+        avg_goals_home_team = avg_goals_home_team if not pd.isna(avg_goals_home_team) else 0
+        avg_goals_away_team = avg_goals_away_team if not pd.isna(avg_goals_away_team) else 0
 
         # Calculate home team's record in their last 5 home games (Wins, Draws, Losses)
         home_wins = (last_5_home_games["result"] == 'W').sum()
@@ -69,28 +76,35 @@ class MatchPredictor:
         away_draws = (last_5_away_games["result"] == 'D').sum()
         away_losses = (last_5_away_games["result"] == 'L').sum()
 
-        # Calculate average goals in all previous meetings between the home team and away team
+
+
+
+        # Ensure proper filtering of matches between Arsenal and Tottenham (correct opponent matching)
         all_meetings = matches_rolling[
-            ((matches_rolling["team"] == home_team) & (matches_rolling["opp"] == self.team_codes[away_team])) |
-            ((matches_rolling["team"] == away_team) & (matches_rolling["opp"] == self.team_codes[home_team]))
+            ((matches_rolling["team"] == home_team) & (matches_rolling["opponent"] == away_team)) |
+            ((matches_rolling["team"] == away_team) & (matches_rolling["opponent"] == home_team))
         ]
-        
+
+        # Calculate average goals in all previous meetings between the home team and away team
         avg_goals_home_in_meetings = all_meetings[all_meetings["team"] == home_team]["gf"].mean()
         avg_goals_away_in_meetings = all_meetings[all_meetings["team"] == away_team]["gf"].mean()
 
+
         # Generate tips
         print(f"\nBetting Tips:")
-        print(f"- {home_team} has scored an average of {avg_goals_home_team:.2f} goals in their last 5 home games.")
-        print(f"- {away_team} has scored an average of {avg_goals_away_team:.2f} goals in their last 5 away games.")
-        
         print(f"- Home record for {home_team} in the last 5 home games: {home_wins} Wins, {home_draws} Draws, {home_losses} Losses.")
         print(f"- Away record for {away_team} in the last 5 away games: {away_wins} Wins, {away_draws} Draws, {away_losses} Losses.")
+        print(f"- {home_team} has scored an average of {avg_goals_home_team:.2f} goals in their last 5 home games.")
+        print(f"- {away_team} has scored an average of {avg_goals_away_team:.2f} goals in their last 5 away games.")
         
         if not all_meetings.empty:
             print(f"- In all previous meetings between {home_team} and {away_team}, {home_team} has scored an average of {avg_goals_home_in_meetings:.2f} goals.")
             print(f"- {away_team} has scored an average of {avg_goals_away_in_meetings:.2f} goals in all their meetings.")
         else:
-            print(f"- No historical meetings between {home_team} and {away_team} are available in the dataset.")   
+            print(f"- No historical meetings between {home_team} and {away_team} are available in the dataset.")
+
+
+
 
     def run(self):
         matches = self.data_loader.load_data()
