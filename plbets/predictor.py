@@ -18,17 +18,23 @@ class MatchPredictor:
 
     def rolling_averages(self, group, cols, new_cols):
         """Calculate rolling averages for team form over the last 5 matches."""
-        group = group.sort_values("date")  # Sort games by date
-        rolling_stats = group[cols].rolling(5, closed='left').mean()  # Rolling average for last 5 games
+        # Sort games by date
+        group = group.sort_values("date")
+
+        # Rolling average for last 5 games
+        rolling_stats = group[cols].rolling(5, closed='left').mean()
         group[new_cols] = rolling_stats
-        group = group.dropna(subset=new_cols)  # Drop rows with missing rolling averages
+
+        # Drop rows with missing rolling averages
+        group = group.dropna(subset=new_cols) 
         return group
 
     def get_team_selection(self):
         print("\nPremier League Teams:")
         for i, team in enumerate(self.teams, 1):
             print(f"{i}. {team}")
-
+        
+        #Prompt user to enter home and away team
         home_team_index = int(input("Select the home team (enter the number): ")) - 1
         away_team_index = int(input("Select the away team (enter the number): ")) - 1
 
