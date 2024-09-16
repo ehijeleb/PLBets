@@ -12,6 +12,8 @@ class DataLoader:
         matches["opp"] = matches["opponent"].astype("category").cat.codes #Opponent as numbers
         matches["hour"] = matches["time"].str.replace(":.+", "", regex=True).astype("int") #Game hour
         matches["day"] = matches["date"].dt.dayofweek # Day of the week (0=Monday, 6=sunday)
-        matches["target"] = (matches["result"] == "W").astype("int") #Create the target column for prediction (Win=1, Not Win=0)
+        
+        # Win = 1, Draw = 0, Loss = -1
+        matches["target"] = matches["result"].map({"W": 1, "D": 0, "L": -1}).astype("int")
         
         return matches
