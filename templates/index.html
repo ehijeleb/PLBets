@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLBets - Premier League Match Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .result {
+            background-color: #e9ffe9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Premier League Match Predictor</h1>
+
+    <form id="predictForm">
+        <h2>Predict Match Result</h2>
+        <label for="home_team">Home Team:</label>
+        <select id="home_team" required>
+            <option value="Arsenal">Arsenal</option>
+            <option value="Tottenham">Tottenham</option>
+            <!-- Add more team options here -->
+        </select>
+
+        <label for="away_team">Away Team:</label>
+        <select id="away_team" required>
+            <option value="Arsenal">Arsenal</option>
+            <option value="Tottenham">Tottenham</option>
+            <!-- Add more team options here -->
+        </select>
+
+        <label for="hour">Match Hour (0-23):</label>
+        <input type="number" id="hour" min="0" max="23" required>
+
+        <label for="day">Day of the Week (0=Mon, 6=Sun):</label>
+        <input type="number" id="day" min="0" max="6" required>
+
+        <button type="submit">Get Prediction</button>
+    </form>
+
+    <form id="tipsForm">
+        <h2>Generate Betting Tips</h2>
+        <label for="tips_home_team">Home Team:</label>
+        <select id="tips_home_team" required>
+            <option value="Arsenal">Arsenal</option>
+            <option value="Tottenham">Tottenham</option>
+            <!-- Add more team options here -->
+        </select>
+
+        <label for="tips_away_team">Away Team:</label>
+        <select id="tips_away_team" required>
+            <option value="Arsenal">Arsenal</option>
+            <option value="Tottenham">Tottenham</option>
+            <!-- Add more team options here -->
+        </select>
+
+        <button type="submit">Get Betting Tips</button>
+    </form>
+
+    <div class="result" id="predictionResult"></div>
+    <div class="result" id="tipsResult"></div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const homeTeam = document.getElementById('home_team').value;
+            const awayTeam = document.getElementById('away_team').value;
+            const hour = document.getElementById('hour').value;
+            const day = document.getElementById('day').value;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ home_team: homeTeam, away_team: awayTeam, hour: hour, day: day })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('predictionResult').style.display = 'block';
+                document.getElementById('predictionResult').innerText = 'Prediction: ' + data.prediction;
+            });
+        });
+
+        document.getElementById('tipsForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const homeTeam = document.getElementById('tips_home_team').value;
+            const awayTeam = document.getElementById('tips_away_team').value;
+
+            fetch('/generate_tips', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ home_team: homeTeam, away_team: awayTeam })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('tipsResult').style.display = 'block';
+                document.getElementById('tipsResult').innerHTML = `
+                    <strong>Betting Tips:</strong><br>
+                    Home Record: ${data.home_record}<br>
+                    Away Record: ${data.away_record}<br>
+                    ${data.home_team} Avg Goals (Home): ${data.avg_goals_home_team.toFixed(2)}<br>
+                    ${data.away_team} Avg Goals (Away): ${data.avg_goals_away_team.toFixed(2)}<br>
+                    Avg Goals in Meetings: ${data.avg_goals_home_in_meetings.toFixed(2)} - ${data.avg_goals_away_in_meetings.toFixed(2)}
+                `;
+            });
+        });
+    </script>
+</body>
+</html>

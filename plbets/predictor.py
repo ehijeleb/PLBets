@@ -15,58 +15,48 @@ class MatchPredictor:
         ]
         self.team_codes = {team: i for i, team in enumerate(self.teams)}
         self.predictors = ["h/a", "opp", "hour", "day"] + [f"{c}_rolling" for c in ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]]
+        self.matches_rolling = None  # Initialize as None, to be computed later
+
+    def load_data_if_needed(self):
+        """Load the data and calculate rolling averages if not already loaded."""
+        if self.matches_rolling is None:
+            matches = self.data_loader.load_data()
+
+            # Define columns for rolling averages
+            cols = ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]
+            new_cols = [f"{c}_rolling" for c in cols]
+
+            # Apply rolling averages to the data
+            matches_rolling = matches.groupby("team").apply(lambda x: self.rolling_averages(x, cols, new_cols))
+            matches_rolling = matches_rolling.droplevel('team')  # Drop the extra index level added by groupby
+            matches_rolling.index = range(matches_rolling.shape[0])  # Reset index
+            self.matches_rolling = matches_rolling
 
     def rolling_averages(self, group, cols, new_cols):
         """Calculate rolling averages for team form over the last 5 matches."""
-        # Sort games by date
         group = group.sort_values("date")
-
-        # Rolling average for last 5 games
         rolling_stats = group[cols].rolling(5, closed='left').mean()
         group[new_cols] = rolling_stats
-
-        # Drop rows with missing rolling averages
-        group = group.dropna(subset=new_cols) 
+        group = group.dropna(subset=new_cols)
         return group
+    
+    def generate_tips(self, home_team, away_team):
+        # Ensure data is loaded and rolling averages are calculated
+        self.load_data_if_needed()
 
-    def get_team_selection(self):
-        print("\nPremier League Teams:")
-        for i, team in enumerate(self.teams, 1):
-            print(f"{i}. {team}")
-        
-        #Prompt user to enter home and away team
-        home_team_index = int(input("Select the home team (enter the number): ")) - 1
-        away_team_index = int(input("Select the away team (enter the number): ")) - 1
-
-        home_team = self.teams[home_team_index]
-        away_team = self.teams[away_team_index]
-
-        # Get hour input from the user
-        hour = int(input("Enter the match hour (0-23, e.g., 15 for 3 PM): "))
-
-        # Get day of the week input from the user
-        print("\nDays of the week (0 = Monday, 6 = Sunday):")
-        day = int(input("Enter the day of the week for the match (0-6): "))
-
-        return home_team, away_team, hour, day
-
-    def generate_tips(self, home_team, away_team, matches_rolling):
         # Filter home games for the selected home team
-        home_games = matches_rolling[(matches_rolling["team"] == home_team) & (matches_rolling["h/a"] == 1)]
+        home_games = self.matches_rolling[(self.matches_rolling["team"] == home_team) & (self.matches_rolling["h/a"] == 1)]
         last_5_home_games = home_games.sort_values("date").tail(5)
         
         # Filter away games for the selected away team
-        away_games = matches_rolling[(matches_rolling["team"] == away_team) & (matches_rolling["h/a"] == 0)]
+        away_games = self.matches_rolling[(self.matches_rolling["team"] == away_team) & (self.matches_rolling["h/a"] == 0)]
         last_5_away_games = away_games.sort_values("date").tail(5)
-
- 
 
         # Calculate the average goals scored in the last 5 home games for the home team
         avg_goals_home_team = last_5_home_games["gf"].mean()
 
         # Calculate the average goals scored in the last 5 away games for the away team
         avg_goals_away_team = last_5_away_games["gf"].mean()
-
 
         # Handle NaN values by replacing them with 0 or a placeholder
         avg_goals_home_team = avg_goals_home_team if not pd.isna(avg_goals_home_team) else 0
@@ -82,70 +72,38 @@ class MatchPredictor:
         away_draws = (last_5_away_games["result"] == 'D').sum()
         away_losses = (last_5_away_games["result"] == 'L').sum()
 
-
-
-
-        # Ensure proper filtering of matches between Arsenal and Tottenham (correct opponent matching)
-        all_meetings = matches_rolling[
-            ((matches_rolling["team"] == home_team) & (matches_rolling["opponent"] == away_team)) |
-            ((matches_rolling["team"] == away_team) & (matches_rolling["opponent"] == home_team))
+        # Ensure proper filtering of matches between the home and away teams
+        all_meetings = self.matches_rolling[
+            ((self.matches_rolling["team"] == home_team) & (self.matches_rolling["opponent"] == away_team)) |
+            ((self.matches_rolling["team"] == away_team) & (self.matches_rolling["opponent"] == home_team))
         ]
 
         # Calculate average goals in all previous meetings between the home team and away team
         avg_goals_home_in_meetings = all_meetings[all_meetings["team"] == home_team]["gf"].mean()
         avg_goals_away_in_meetings = all_meetings[all_meetings["team"] == away_team]["gf"].mean()
 
+        # Handle NaN values in the meetings
+        avg_goals_home_in_meetings = avg_goals_home_in_meetings if not pd.isna(avg_goals_home_in_meetings) else 0
+        avg_goals_away_in_meetings = avg_goals_away_in_meetings if not pd.isna(avg_goals_away_in_meetings) else 0
 
-        # Generate tips
-        print(f"\nBetting Tips:")
-        print(f"- Home record for {home_team} in the last 5 home games: {home_wins} Wins, {home_draws} Draws, {home_losses} Losses.")
-        print(f"- Away record for {away_team} in the last 5 away games: {away_wins} Wins, {away_draws} Draws, {away_losses} Losses.")
-        print(f"- {home_team} has scored an average of {avg_goals_home_team:.2f} goals in their last 5 home games.")
-        print(f"- {away_team} has scored an average of {avg_goals_away_team:.2f} goals in their last 5 away games.")
-        
-        if not all_meetings.empty:
-            print(f"- In all previous meetings between {home_team} and {away_team}, {home_team} has scored an average of {avg_goals_home_in_meetings:.2f} goals.")
-            print(f"- {away_team} has scored an average of {avg_goals_away_in_meetings:.2f} goals in all their meetings.")
-        else:
-            print(f"- No historical meetings between {home_team} and {away_team} are available in the dataset.")
+        # Generate tips as a dictionary
+        tips = {
+            "home_record": f"{home_wins} Wins, {home_draws} Draws, {home_losses} Losses",
+            "away_record": f"{away_wins} Wins, {away_draws} Draws, {away_losses} Losses",
+            "avg_goals_home_team": avg_goals_home_team,
+            "avg_goals_away_team": avg_goals_away_team,
+            "avg_goals_home_in_meetings": avg_goals_home_in_meetings,
+            "avg_goals_away_in_meetings": avg_goals_away_in_meetings
+        }
 
+        return tips
 
+    def predict_match(self, home_team, away_team, hour, day):
+        # Ensure data is loaded and rolling averages are calculated
+        self.load_data_if_needed()
 
-
-    def run(self):
-        matches = self.data_loader.load_data()
-
-        # Define columns for rolling averages
-        cols = ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]
-        new_cols = [f"{c}_rolling" for c in cols]
-
-        # Apply rolling averages to the data
-        matches_rolling = matches.groupby("team").apply(lambda x: self.rolling_averages(x, cols, new_cols))
-        matches_rolling = matches_rolling.droplevel('team')  # Drop the extra index level added by groupby
-        matches_rolling.index = range(matches_rolling.shape[0])  # Reset index
-
-        # Split into training and testing sets
-        train_data = matches_rolling[matches_rolling["date"] < '2022-06-01']
-        test_data = matches_rolling[matches_rolling["date"] > '2023-06-01']
-
-        # Define predictors and target
-        target = "target"
-
-        self.model.train(train_data, self.predictors, target)
-        preds, precision = self.model.evaluate(test_data, self.predictors, target)
-        print(f"Model Precision: {precision:.2f}")
-
-        # Team selection and match prediction
-        home_team, away_team, hour, day = self.get_team_selection()
-        self.predict_match(home_team, away_team, hour, day, matches_rolling)
-
-        # Generate betting tips
-        self.generate_tips(home_team, away_team, matches_rolling)
-
-    
-    def predict_match(self, home_team, away_team, hour, day, matches_rolling):
         # Get the latest rolling averages for the home and away teams
-        home_team_data = matches_rolling[matches_rolling["team"] == home_team].sort_values("date").iloc[-1]
+        home_team_data = self.matches_rolling[self.matches_rolling["team"] == home_team].sort_values("date").iloc[-1]
         away_team_code = self.team_codes[away_team]
 
         # Create a row for the prediction (using home team's rolling stats)
@@ -171,7 +129,16 @@ class MatchPredictor:
         # Make a prediction
         pred = self.model.model.predict(match_df[self.predictors])
 
+        # Interpret the prediction: 1 = Win, 0 = Draw, -1 = Loss
         if pred[0] == 1:
-            print(f"\nPrediction: {home_team} will win the match against {away_team}!")
+            prediction = "Home win"
+        elif pred[0] == 0:
+            prediction = "Draw"
         else:
-            print(f"\nPrediction: {home_team} will not win the match against {away_team}.")
+            prediction = "Home loss"
+
+        result = {
+            "prediction": prediction
+        }
+
+        return result

@@ -19,7 +19,7 @@ class BettingModel:
         preds = self.model.predict(test_data[predictors])
 
         #calcualate the precision score, comparing predictions with the true target values
-        precision = precision_score(test_data[target], preds)
+        precision = precision_score(test_data[target], preds, average=average)
 
         #Return both the predictions and the precision score
         return preds, precision
