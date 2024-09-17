@@ -1,15 +1,14 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from plbets.predictor import MatchPredictor
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app) 
 
 # Initialize MatchPredictor object
 predictor = MatchPredictor()
 
-# Route to serve the homepage
-@app.route('/')
-def home():
-    return render_template('index.html')  # Ensure index.html is in the 'templates' folder
+
 
 @app.route('/train_model', methods=['POST'])
 def train_model():
