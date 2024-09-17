@@ -11,36 +11,14 @@ predictor = MatchPredictor()
 def home():
     return render_template('index.html')  # Ensure index.html is in the 'templates' folder
 
-# Load data and train the model once when the first request comes in
-@app.route('/predict', methods=['POST'])
+@app.route('/train_model', methods=['POST'])
+def train_model():
+    # Call the train_model method to train the model
+    predictor.train_model()
+    return jsonify({"message": "Model trained successfully"}), 200
+
+@app.route('/predict_match', methods=['POST'])
 def predict_match():
-    # Only load the data and train the model if it hasn't been loaded yet
-    if not hasattr(predictor, 'matches_rolling'):
-        matches = predictor.data_loader.load_data()
-        cols = ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]
-        new_cols = [f"{c}_rolling" for c in cols]
-
-        matches_rolling = matches.groupby("team").apply(lambda x: predictor.rolling_averages(x, cols, new_cols))
-        matches_rolling = matches_rolling.droplevel('team')
-        matches_rolling.index = range(matches_rolling.shape[0])
-
-        predictor.matches_rolling = matches_rolling
-
-        # Split the data into training and test sets
-        train_data = matches_rolling[matches_rolling["date"] < '2022-06-01']
-        test_data = matches_rolling[matches_rolling["date"] > '2023-06-01']
-
-        # Define predictors and target
-        target = "target"
-
-        # Train the model
-        predictor.model.train(train_data, predictor.predictors, target)
-
-        # Evaluate the model using the test data
-        preds, precision = predictor.model.evaluate(test_data, predictor.predictors, target, average="macro")
-        print(f"Model Precision: {precision:.2f}")
-
-    # Now proceed with the prediction
     data = request.json
     home_team = data.get('home_team')
     away_team = data.get('away_team')
@@ -50,8 +28,13 @@ def predict_match():
     if not home_team or not away_team or hour is None or day is None:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    result = predictor.predict_match(home_team, away_team, hour, day, predictor.matches_rolling)
+    # Ensure the model is trained before making predictions
+    predictor.train_model()
+
+    # Call the prediction function
+    result = predictor.predict_match(home_team, away_team, hour, day)
     return jsonify(result)
+
 
 
 

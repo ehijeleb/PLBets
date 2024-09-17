@@ -100,7 +100,7 @@
             const hour = document.getElementById('hour').value;
             const day = document.getElementById('day').value;
 
-            fetch('/predict', {
+            fetch('/predict_match', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ home_team: homeTeam, away_team: awayTeam, hour: hour, day: day })
