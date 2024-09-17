@@ -36,6 +36,7 @@ class MatchPredictor:
         """Calculate rolling averages for team form over the last 5 matches."""
         group = group.sort_values("date")
         rolling_stats = group[cols].rolling(5, closed='left').mean()
+        group[new_cols] = rolling_stats.fillna(0)
         group[new_cols] = rolling_stats
         group = group.dropna(subset=new_cols)
         return group
@@ -97,22 +98,38 @@ class MatchPredictor:
         }
 
         return tips
-
-    def predict_match(self, home_team, away_team, hour, day):
-        # Ensure data is loaded and rolling averages are calculated
+    
+    def train_model(self):
+        """Train the betting model using the training data."""
         self.load_data_if_needed()
 
-        # Get the latest rolling averages for the home and away teams
+        # Split the data into training and test sets
+        train_data = self.matches_rolling[self.matches_rolling["date"] < '2023-06-01']
+        test_data = self.matches_rolling[self.matches_rolling["date"] > '2023-06-01']
+
+        # Define target variable
+        target = "target"
+
+        # Train the model on the training set
+        self.model.train(train_data, self.predictors, target)
+
+        # Evaluate the model on the test set
+        preds, precision = self.model.evaluate(test_data, self.predictors, target)
+        print(f"Model Precision: {precision:.2f}")
+
+    def predict_match(self, home_team, away_team, hour, day):
+        self.load_data_if_needed()
+
+        # Use the latest rolling averages for prediction
         home_team_data = self.matches_rolling[self.matches_rolling["team"] == home_team].sort_values("date").iloc[-1]
         away_team_code = self.team_codes[away_team]
 
-        # Create a row for the prediction (using home team's rolling stats)
+        # Create a row for the prediction
         match_data = {
-            "h/a": 1,  # Home team = 1
+            "h/a": 1,
             "opp": away_team_code,
             "hour": hour,
             "day": day,
-            # Add rolling averages for the home team
             "gf_rolling": home_team_data.get("gf_rolling", 0),
             "ga_rolling": home_team_data.get("ga_rolling", 0),
             "sh_rolling": home_team_data.get("sh_rolling", 0),
@@ -137,8 +154,6 @@ class MatchPredictor:
         else:
             prediction = "Home loss"
 
-        result = {
-            "prediction": prediction
-        }
+        result = {"prediction": prediction}
 
         return result

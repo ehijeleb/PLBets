@@ -12,9 +12,9 @@ class BettingModel:
     def train(self, train_data, predictors, target):
         #Fit the model on the training data using the specified predictors and target variable 
         self.model.fit(train_data[predictors], train_data[target])
- 
+
     #Method to evaluate tge nidek i btge test data
-    def evaluate(self, test_data, predictors, target):
+    def evaluate(self, test_data, predictors, target, average="weighted"):
         #Use the model to predict the target variable based on the test data
         preds = self.model.predict(test_data[predictors])
 
