@@ -10,6 +10,30 @@ export default function Home() {
   const [prediction, setPrediction] = useState(null);
   const [bettingTips, setBettingTips] = useState(null);
 
+  // List of Premier League teams
+  const teams = [
+    'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton', 'Chelsea', 'Crystal Palace', 'Everton',
+    'Fulham', 'Leeds United', 'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
+    'Newcastle United', 'Nottingham Forest', 'Southampton', 'Tottenham Hotspur', 'West Ham United', 'Wolves'
+  ];
+
+  const daysOfWeek = [
+    { label: 'Monday', value: 0 },
+    { label: 'Tuesday', value: 1 },
+    { label: 'Wednesday', value: 2 },
+    { label: 'Thursday', value: 3 },
+    { label: 'Friday', value: 4 },
+    { label: 'Saturday', value: 5 },
+    { label: 'Sunday', value: 6 },
+  ];
+
+  const matchTimes = [
+    { label: '12:30 PM', value: 12 },
+    { label: '3:00 PM', value: 15 },
+    { label: '5:30 PM', value: 17 },
+    { label: '7:45 PM', value: 19 },
+  ];
+
   const handlePredict = async () => {
     // Fetch the match prediction
     const resPrediction = await fetch('http://127.0.0.1:5000/predict_match', {
@@ -43,35 +67,66 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">Premier League Match Predictor</h1>
-      <div className="mt-4">
-        <input
-          className="border p-2 mr-2"
-          placeholder="Home Team"
+    <div className="bg-white text-black min-h-screen flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold mb-4">Premier League Match Predictor</h1>
+      <div className="bg-card text-black p-6 rounded-lg shadow-lg w-full max-w-xl">
+
+        {/* Dropdown for selecting home team */}
+        <select
+          className="border p-2 my-2 mx-4 rounded-lg"
           value={homeTeam}
           onChange={(e) => setHomeTeam(e.target.value)}
-        />
-        <input
-          className="border p-2 mr-2"
-          placeholder="Away Team"
+        >
+          <option value="">Select Home Team</option>
+          {teams.map((team) => (
+            <option key={team} value={team}>
+              {team}
+            </option>
+          ))}
+        </select>
+
+        {/* Dropdown for selecting away team */}
+        <select
+          className="border p-2 my-2 mx-4 rounded-lg"
           value={awayTeam}
           onChange={(e) => setAwayTeam(e.target.value)}
-        />
-        <input
-          className="border p-2 mr-2"
-          type="number"
-          placeholder="Hour"
-          value={hour}
-          onChange={(e) => setHour(e.target.value)}
-        />
-        <input
-          className="border p-2 mr-2"
-          type="number"
-          placeholder="Day (0=Monday, 6=Sunday)"
+        >
+          <option value="">Select Away Team</option>
+          {teams.map((team) => (
+            <option key={team} value={team}>
+              {team}
+            </option>
+          ))}
+        </select>
+
+        {/* Dropdown for selecting match day */}
+        <select
+          className="border p-2 my-2 mx-4 rounded-lg"
           value={day}
           onChange={(e) => setDay(e.target.value)}
-        />
+        >
+          <option value="">Select Day of the Week</option>
+          {daysOfWeek.map((day) => (
+            <option key={day.value} value={day.value}>
+              {day.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Dropdown for selecting match time */}
+        <select
+          className="border p-2 my-2 mx-4 rounded-lg"
+          value={hour}
+          onChange={(e) => setHour(e.target.value)}
+        >
+          <option value="">Select Match Time</option>
+          {matchTimes.map((time) => (
+            <option key={time.value} value={time.value}>
+              {time.label}
+            </option>
+          ))}
+        </select>
+
         <button
           className="bg-blue-500 text-white p-2 rounded"
           onClick={handlePredict}
