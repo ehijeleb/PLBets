@@ -10,7 +10,6 @@ export default function Home() {
   const [prediction, setPrediction] = useState(null);
   const [bettingTips, setBettingTips] = useState(null);
 
-  // List of Premier League teams
   const teams = [
     'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton', 'Chelsea', 'Crystal Palace', 'Everton',
     'Fulham', 'Leeds United', 'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
@@ -35,7 +34,6 @@ export default function Home() {
   ];
 
   const handlePredict = async () => {
-    // Fetch the match prediction
     const resPrediction = await fetch('http://127.0.0.1:5000/predict_match', {
       method: 'POST',
       headers: {
@@ -51,7 +49,6 @@ export default function Home() {
     const predictionData = await resPrediction.json();
     setPrediction(predictionData);
 
-    // Fetch the betting tips
     const resTips = await fetch('http://127.0.0.1:5000/generate_tips', {
       method: 'POST',
       headers: {
@@ -67,13 +64,12 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-white text-black min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-4">Premier League Match Predictor</h1>
-      <div className="bg-card text-black p-6 rounded-lg shadow-lg w-full max-w-xl">
-
-        {/* Dropdown for selecting home team */}
+    <div className="bg-gray-100 text-black min-h-screen flex flex-col items-center justify-center">
+      <h1 className="text-4xl font-bold mb-8">Premier League Match Predictor</h1>
+      
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md space-y-4">
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 w-full rounded-lg"
           value={homeTeam}
           onChange={(e) => setHomeTeam(e.target.value)}
         >
@@ -85,9 +81,8 @@ export default function Home() {
           ))}
         </select>
 
-        {/* Dropdown for selecting away team */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 w-full rounded-lg"
           value={awayTeam}
           onChange={(e) => setAwayTeam(e.target.value)}
         >
@@ -99,9 +94,8 @@ export default function Home() {
           ))}
         </select>
 
-        {/* Dropdown for selecting match day */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 w-full rounded-lg"
           value={day}
           onChange={(e) => setDay(e.target.value)}
         >
@@ -113,9 +107,8 @@ export default function Home() {
           ))}
         </select>
 
-        {/* Dropdown for selecting match time */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 w-full rounded-lg"
           value={hour}
           onChange={(e) => setHour(e.target.value)}
         >
@@ -128,7 +121,7 @@ export default function Home() {
         </select>
 
         <button
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-blue-500 text-white p-2 w-full rounded-lg mt-4 hover:bg-blue-600 transition"
           onClick={handlePredict}
         >
           Predict Match
@@ -136,41 +129,38 @@ export default function Home() {
       </div>
 
       {prediction && (
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Prediction:</h2>
-          <p>{prediction.prediction}</p>
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-8 w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Prediction:</h2>
+          <p className="text-lg">{prediction.prediction}</p>
         </div>
       )}
 
       {bettingTips && (
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Betting Tips:</h2>
-          <p>
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-4 w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Betting Tips:</h2>
+          <p className="text-lg">
             <strong>{homeTeam}</strong> Record: {bettingTips.home_record}
           </p>
-          <p>
+          <p className="text-lg">
             <strong>{awayTeam}</strong> Record: {bettingTips.away_record}
           </p>
-          <p>
-            Average Goals Scored by <strong>{homeTeam}</strong>:{' '}
-            {bettingTips.avg_goals_home_team.toFixed(1)}
+          <p className="text-lg">
+            Average Goals Scored by <strong>{homeTeam}</strong>: {bettingTips.avg_goals_home_team.toFixed(1)}
           </p>
-          <p>
-            Average Goals Scored by <strong>{awayTeam}</strong>:{' '}
-            {bettingTips.avg_goals_away_team.toFixed(1)}
+          <p className="text-lg">
+            Average Goals Scored by <strong>{awayTeam}</strong>: {bettingTips.avg_goals_away_team.toFixed(1)}
           </p>
-          <p>
-            In all meetings between <strong>{homeTeam}</strong> and{' '}
-            <strong>{awayTeam}</strong>:
+          <p className="text-lg">
+            In all meetings between <strong>{homeTeam}</strong> and <strong>{awayTeam}</strong>:
           </p>
-          <p>
-            - <strong>{homeTeam}</strong> scored an average of{' '}
-            {bettingTips.avg_goals_home_in_meetings.toFixed(1)} goals.
-          </p>
-          <p>
-            - <strong>{awayTeam}</strong> scored an average of{' '}
-            {bettingTips.avg_goals_away_in_meetings.toFixed(1)} goals.
-          </p>
+          <ul className="list-disc pl-5 text-lg">
+            <li>
+              <strong>{homeTeam}</strong> scored an average of {bettingTips.avg_goals_home_in_meetings.toFixed(1)} goals.
+            </li>
+            <li>
+              <strong>{awayTeam}</strong> scored an average of {bettingTips.avg_goals_away_in_meetings.toFixed(1)} goals.
+            </li>
+          </ul>
         </div>
       )}
     </div>
