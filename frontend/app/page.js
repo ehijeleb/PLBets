@@ -68,12 +68,11 @@ export default function Home() {
 
   return (
     <div className="bg-white text-black min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-4">Premier League Match Predictor</h1>
-      <div className="bg-card text-black p-6 rounded-lg shadow-lg w-full max-w-xl">
-
+      <h1 className="text-3xl font-bold mb-8">Premier League Match Predictor</h1>
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         {/* Dropdown for selecting home team */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 my-2 w-full rounded-lg"
           value={homeTeam}
           onChange={(e) => setHomeTeam(e.target.value)}
         >
@@ -87,7 +86,7 @@ export default function Home() {
 
         {/* Dropdown for selecting away team */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 my-2 w-full rounded-lg"
           value={awayTeam}
           onChange={(e) => setAwayTeam(e.target.value)}
         >
@@ -101,7 +100,7 @@ export default function Home() {
 
         {/* Dropdown for selecting match day */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 my-2 w-full rounded-lg"
           value={day}
           onChange={(e) => setDay(e.target.value)}
         >
@@ -115,7 +114,7 @@ export default function Home() {
 
         {/* Dropdown for selecting match time */}
         <select
-          className="border p-2 my-2 mx-4 rounded-lg"
+          className="border p-2 my-2 w-full rounded-lg"
           value={hour}
           onChange={(e) => setHour(e.target.value)}
         >
@@ -128,7 +127,7 @@ export default function Home() {
         </select>
 
         <button
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-blue-500 text-white p-2 w-full rounded-lg mt-4"
           onClick={handlePredict}
         >
           Predict Match
@@ -136,7 +135,7 @@ export default function Home() {
       </div>
 
       {prediction && (
-        <div className="mt-4">
+        <div className="mt-8">
           <h2 className="text-xl font-bold">Prediction:</h2>
           <p>{prediction.prediction}</p>
         </div>
