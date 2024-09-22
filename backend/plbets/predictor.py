@@ -41,6 +41,19 @@ class MatchPredictor:
         group = group.dropna(subset=new_cols)
         return group
     
+    def get_referee_stats(self, referee_name):
+        # Load the referee data (this assumes you've already read the CSV file somewhere)
+        referee_data = pd.read_csv('data/referee.csv')
+        
+        # Find the referee in the dataset
+        referee_stats = referee_data[referee_data["referee"] == referee_name]
+        
+        # Return the stats if found, else return None
+        if not referee_stats.empty:
+            return referee_stats.iloc[0]
+        return None
+
+
     def generate_tips(self, home_team, away_team):
         # Ensure data is loaded and rolling averages are calculated
         self.load_data_if_needed()
@@ -48,10 +61,23 @@ class MatchPredictor:
         # Filter home games for the selected home team
         home_games = self.matches_rolling[(self.matches_rolling["team"] == home_team) & (self.matches_rolling["h/a"] == 1)]
         last_5_home_games = home_games.sort_values("date").tail(5)
-        
+
         # Filter away games for the selected away team
         away_games = self.matches_rolling[(self.matches_rolling["team"] == away_team) & (self.matches_rolling["h/a"] == 0)]
         last_5_away_games = away_games.sort_values("date").tail(5)
+
+        # Extract the referee for the latest match between the two teams
+        latest_match = self.matches_rolling[
+            ((self.matches_rolling["team"] == home_team) & 
+            (self.matches_rolling["opponent"] == away_team)) |
+            ((self.matches_rolling["team"] == away_team) & 
+            (self.matches_rolling["opponent"] == home_team))
+        ].sort_values("date").iloc[-1]
+
+        referee_name = latest_match["referee"]
+
+        # Get referee stats from the referee dataset
+        referee_stats = self.get_referee_stats(referee_name)
 
         # Calculate the average goals scored in the last 5 home games for the home team
         avg_goals_home_team = last_5_home_games["gf"].mean()
@@ -94,10 +120,23 @@ class MatchPredictor:
             "avg_goals_home_team": avg_goals_home_team,
             "avg_goals_away_team": avg_goals_away_team,
             "avg_goals_home_in_meetings": avg_goals_home_in_meetings,
-            "avg_goals_away_in_meetings": avg_goals_away_in_meetings
+            "avg_goals_away_in_meetings": avg_goals_away_in_meetings,
         }
 
+        # Add referee stats if available
+        if referee_stats is not None:
+            tips["referee"] = {
+                "name": referee_name,
+                "fouls_pg": referee_stats.get("fouls_pg", "N/A"),
+                "pen_pg": referee_stats.get("pen_pg", "N/A"),
+                "yel_pg": referee_stats.get("yel_pg", "N/A")
+            }
+        else:
+            tips["referee"] = {"name": referee_name, "fouls_pg": "N/A", "pen_pg": "N/A", "yel_pg": "N/A"}
+
         return tips
+
+
     
     def train_model(self):
         """Train the betting model using the training data."""
