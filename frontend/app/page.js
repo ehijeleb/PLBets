@@ -92,6 +92,7 @@ export default function Home() {
       body: JSON.stringify({
         home_team: homeTeam,
         away_team: awayTeam,
+        referee: referee,
       }),
     });
     const tipsData = await resTips.json();
