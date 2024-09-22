@@ -41,7 +41,13 @@ def predict_match():
 # Route to generate betting tips
 @app.route('/generate_tips', methods=['POST'])
 def generate_tips():
-    # Load the data if it hasn't been loaded yet
+
+    data = request.json
+    home_team = data.get('home_team')
+    away_team = data.get('away_team')
+    referee_name = data.get('referee')
+
+
     if not hasattr(predictor, 'matches_rolling'):
         matches = predictor.data_loader.load_data()
 
@@ -56,10 +62,7 @@ def generate_tips():
 
         predictor.matches_rolling = matches_rolling
 
-    # Retrieve data from the request
-    data = request.json
-    home_team = data.get('home_team')
-    away_team = data.get('away_team')
+
 
     if not home_team or not away_team:
         return jsonify({"error": "Missing required parameters"}), 400
@@ -67,13 +70,15 @@ def generate_tips():
     # Call the generate_tips method on the predictor instance
     tips = predictor.generate_tips(home_team, away_team)
 
-    # Get the referee from the latest match between the two teams
-    latest_match = predictor.matches_rolling[
-        ((predictor.matches_rolling["team"] == home_team) & 
-         (predictor.matches_rolling["opponent"] == away_team)) |
-        ((predictor.matches_rolling["team"] == away_team) & 
-         (predictor.matches_rolling["opponent"] == home_team))
-    ].iloc[-1]
+    referee_data = pd.read_csv('data/referee.csv')
+    referee_stats = referee_data[referee_data['referee'] == referee_name].iloc[0]
+
+    tips['referee'] = {
+        "name": referee_name,
+        "fouls_pg": referee_stats.get('fouls_pg','n/a'),
+        "pen_pg": referee_stats.get('pen_pg','n/a'),
+        "yel_pg": referee_stats.get('yel_pg','n/a')
+    }
 
 
     # Return the tips as a JSON response
