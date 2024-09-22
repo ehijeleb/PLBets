@@ -22,14 +22,13 @@ driver.get(url)
 wait = WebDriverWait(driver, 10)
 wait.until(EC.presence_of_element_located((By.ID, "referee-tournaments-table-body")))
 
-# Open CSV file to write the scraped data
-with open('scraped_data.csv', mode='w', newline='', encoding='utf-8') as file:
-    writer = csv.writer(file)
-    
-    # Write headers
-    writer.writerow(['referee', 'fouls_pg', 'fouls/tackles', 'pen_pg', 'yel_pg', 'yel', 'red_pg', 'red'])
+# Scraping logic
+page_count = 1  
+headers_written = False  
 
-    page_count = 1  # Start the counter for pages
+# Open CSV file to write the scraped data
+with open('referee.csv', mode='w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
 
     while page_count <= 2:  # Since there are only 2 pages
         # Get the page source and pass it to BeautifulSoup
@@ -38,6 +37,20 @@ with open('scraped_data.csv', mode='w', newline='', encoding='utf-8') as file:
         # Find the table body by ID
         table_body = soup.find('tbody', id='referee-tournaments-table-body')
         table_rows = table_body.find_all('tr') if table_body else []
+
+        # Only write headers on the first page and once
+        if not headers_written:
+            table_head = soup.find('thead')
+            if table_head:
+                headers = [th.text.strip() for th in table_head.find_all('th')]
+                # Check the length of the first row to ensure headers match the body
+                if table_rows:
+                    first_row_columns = table_rows[0].find_all('td')
+                    # If headers are fewer than body columns, add placeholder headers
+                    while len(headers) < len(first_row_columns):
+                        headers.append(f"Column {len(headers) + 1}")
+                writer.writerow(headers)
+                headers_written = True  # Mark headers as written
 
         # Loop through each row and extract data
         for row in table_rows:
@@ -80,7 +93,6 @@ with open('scraped_data.csv', mode='w', newline='', encoding='utf-8') as file:
                 print(f"Error navigating to next page: {e}")
                 break  # Stop if the next button is not found or there's an issue
         else:
-            # If we've already navigated to the second page, exit the loop
             print("All pages scraped successfully.")
             break
 

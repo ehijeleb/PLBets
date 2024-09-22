@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from plbets.predictor import MatchPredictor
 from flask_cors import CORS
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app) 
@@ -66,8 +67,33 @@ def generate_tips():
     # Call the generate_tips method on the predictor instance
     tips = predictor.generate_tips(home_team, away_team)
 
+    # Get the referee from the latest match between the two teams
+    latest_match = predictor.matches_rolling[
+        ((predictor.matches_rolling["team"] == home_team) & 
+         (predictor.matches_rolling["opponent"] == away_team)) |
+        ((predictor.matches_rolling["team"] == away_team) & 
+         (predictor.matches_rolling["opponent"] == home_team))
+    ].iloc[-1]
+
+
     # Return the tips as a JSON response
     return jsonify(tips)
+
+
+
+@app.route('/get_referees', methods=['GET'])
+def get_referees():
+    # Load the referee dataset
+    referee_data = pd.read_csv('data/referee.csv')
+
+    # Extract referee details (name and stats)
+    referees = referee_data.to_dict(orient="records")
+
+    # Return the list of referees with stats as JSON
+    return jsonify({"referees": referees})
+
+
+
 
 
 
