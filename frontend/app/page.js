@@ -101,7 +101,7 @@ export default function Home() {
 
   return (
     <div className="bg-gray-100 text-black min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-8">Premier League Match Predictor</h1>
+      <h1 className="text-4xl font-bold mb-8">PLBets</h1>
 
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md space-y-4">
         <div className="flex flex-col space-y-4">
@@ -157,7 +157,6 @@ export default function Home() {
             ))}
           </select>
 
-          {/* Referee Dropdown */}
           <select
             className="border p-2 w-full rounded-lg"
             value={referee}
@@ -181,7 +180,7 @@ export default function Home() {
       </div>
 
       {prediction && (
-        <div className="bg-white p-6 rounded-lg shadow-lg mt-8 w-full max-w-md">
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-8 w-full max-w-md text-center">
           <h2 className="text-2xl font-bold mb-4">Prediction:</h2>
           <p className="text-lg">{prediction.prediction}</p>
         </div>
@@ -189,26 +188,39 @@ export default function Home() {
 
       {bettingTips && (
         <div className="bg-white p-6 rounded-lg shadow-lg mt-4 w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4">Betting Tips:</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">Betting Tips:</h2>
+
+          <div className="py-4 text-center">
           <p className="text-lg">
-            <strong>{homeTeam}</strong> Record: {bettingTips.home_record}
+            <strong>{homeTeam}'s</strong> Current Form:
+          </p>
+          <p>{bettingTips.home_record}</p>
+          </div>
+
+          <div className="py-4 text-center">
+          <p className="text-lg">
+            <strong>{awayTeam}'s</strong> Current Form:
+          </p>
+          <p>{bettingTips.away_record}</p>
+          </div>
+
+          <div className="py-4 text-center">
+          <p className="text-lg">
+            In <strong>{homeTeam}'s</strong> Last five games, they have scored an average of 
+            {" "} {bettingTips.avg_goals_home_team.toFixed(1)} goals
           </p>
           <p className="text-lg">
-            <strong>{awayTeam}</strong> Record: {bettingTips.away_record}
+          In <strong>{awayTeam}'s</strong> Last five games, they have scored an average of 
+          {" "} {bettingTips.avg_goals_away_in_meetings.toFixed(1)} goals
           </p>
+          </div>
+
+          <div className="text-center space-y-2">
           <p className="text-lg">
-            Average Goals Scored by <strong>{homeTeam}</strong>:{" "}
-            {bettingTips.avg_goals_home_team.toFixed(1)}
+            Since we have been collecting data, in all meetings between <strong>{homeTeam}</strong> {""}
+            and {" "} <strong>{awayTeam}</strong>:
           </p>
-          <p className="text-lg">
-            Average Goals Scored by <strong>{awayTeam}</strong>:{" "}
-            {bettingTips.avg_goals_away_team.toFixed(1)}
-          </p>
-          <p className="text-lg">
-            In all meetings between <strong>{homeTeam}</strong> and{" "}
-            <strong>{awayTeam}</strong>:
-          </p>
-          <ul className="list-disc pl-5 text-lg">
+          <ul>
             <li>
               <strong>{homeTeam}</strong> scored an average of{" "}
               {bettingTips.avg_goals_home_in_meetings.toFixed(1)} goals.
@@ -218,10 +230,10 @@ export default function Home() {
               {bettingTips.avg_goals_away_in_meetings.toFixed(1)} goals.
             </li>
           </ul>
+          </div>
 
-          {/* Referee Info */}
           {bettingTips.referee && (
-            <div className="mt-4">
+            <div className="mt-4 py-4 text-center">
               <h2 className="text-2xl font-bold">Referee Stats</h2>
               <p>Referee: {bettingTips.referee.name}</p>
               <p>Fouls per game: {bettingTips.referee.fouls_pg}</p>

@@ -187,11 +187,11 @@ class MatchPredictor:
 
         # Interpret the prediction: 1 = Win, 0 = Draw, -1 = Loss
         if pred[0] == 1:
-            prediction = "Home win"
+            prediction = f"{home_team} win"
         elif pred[0] == 0:
             prediction = "Draw"
         else:
-            prediction = "Home loss"
+            prediction = f"{away_team} win"
 
         result = {"prediction": prediction}
 
