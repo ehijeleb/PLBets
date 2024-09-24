@@ -42,7 +42,7 @@ class MatchPredictor:
         return group
     
     def get_referee_stats(self, referee_name):
-        # Load the referee data (this assumes you've already read the CSV file somewhere)
+        # Load the referee data 
         referee_data = pd.read_csv('data/referee.csv')
         
         # Find the referee in the dataset
@@ -123,7 +123,6 @@ class MatchPredictor:
             "avg_goals_away_in_meetings": avg_goals_away_in_meetings,
         }
 
-        # Add referee stats if available
         if referee_stats is not None:
             tips["referee"] = {
                 "name": referee_name,

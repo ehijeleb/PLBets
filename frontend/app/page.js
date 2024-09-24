@@ -7,8 +7,8 @@ export default function Home() {
   const [awayTeam, setAwayTeam] = useState("");
   const [hour, setHour] = useState("");
   const [day, setDay] = useState("");
-  const [referee, setReferee] = useState(""); // Add state for referee
-  const [referees, setReferees] = useState([]); // State to store referees fetched from backend
+  const [referee, setReferee] = useState(""); 
+  const [referees, setReferees] = useState([]); 
   const [prediction, setPrediction] = useState(null);
   const [bettingTips, setBettingTips] = useState(null);
 
@@ -52,7 +52,6 @@ export default function Home() {
     { label: "7:45 PM", value: 19 },
   ];
 
-  // Fetch referees from the backend when the component mounts
   useEffect(() => {
     const fetchReferees = async() => {
       try {
