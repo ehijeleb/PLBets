@@ -55,7 +55,7 @@ export default function Home() {
   useEffect(() => {
     const fetchReferees = async() => {
       try {
-        const res = await fetch("http://127.0.0.1:5000/get_referees");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/get_referees`);
         const data = await res.json();
         console.log("Fetched Referees:", data.referees);
         setReferees(data.referees);
@@ -68,7 +68,7 @@ export default function Home() {
       
 
   const handlePredict = async () => {
-    const resPrediction = await fetch("http://127.0.0.1:5000/predict_match", {
+    const resPrediction = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/predict_match`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -83,7 +83,7 @@ export default function Home() {
     const predictionData = await resPrediction.json();
     setPrediction(predictionData);
 
-    const resTips = await fetch("http://127.0.0.1:5000/generate_tips", {
+    const resTips = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate_tips`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
