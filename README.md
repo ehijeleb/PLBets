@@ -11,6 +11,7 @@ This project is a full-stack web application that allows users to predict Premie
 - [Frontend (Next.js) Setup](#frontend-nextjs-setup)
 - [Backend (Flask) Setup](#backend-flask-setup)
 - [Running the Project Locally](#running-the-project-locally)
+- [Deployment](#deployment)
 
 ## Project Overview
 
@@ -32,7 +33,7 @@ The Premier League Betting Prediction App allows users to:
 ### Other Tools
 - **PostCSS** and **Autoprefixer** for CSS processing
 - **Vercel** for Next.js deployment
-- **Heroku** or **Render** for Flask deployment (backend)
+- **Render** for Flask deployment (backend)
 
 
 
@@ -109,3 +110,11 @@ The backend should now be running on http://127.0.0.1:5000.
 ### Running the project locally
 
 Once both the frontend and backend are set up and running, you can interact with the application by visiting the frontend at http://localhost:3000. The frontend will send API requests back to the flask backend to get match predictions and betting tips
+
+##Deployment 
+
+The application is fully deployed with the following services:
+- **Frontend**: Deployed using **Vercel**. You can access it [here](https://pl-bets.vercel.app/)
+- **Backend**: Deployed using **Render**. You can access it [here](https://plbets.onrender.com/)
+
+The frontend communicates with the backend via API calls to deliver real-time predictions and betting tips for Premier League Matches
